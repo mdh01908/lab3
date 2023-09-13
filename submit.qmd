@@ -1,28 +1,119 @@
 ---
-title: ""
-author: ""
+title: "Lab 3"
+author: "Michelle Hernandez"
 format:
   html:
     embed-resources: true
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+## 1. read in the data
 
 ```{r}
-1 + 1
+download.file(
+  "https://raw.githubusercontent.com/USCbiostats/data-science-data/master/02_met/met_all.gz",
+  destfile = file.path("~", "Downloads", "met_all.gz"),
+  method   = "libcurl",
+  timeout  = 60
+)
+
+met <- data.table::fread(file.path("~", "Downloads", "met_all.gz"))
+
 ```
 
-You can add options to executable code like this
+## 2. Check dimensions headers footers. How many columns?
 
 ```{r}
-#| echo: false
-2 * 2
+dim(met)
+#There are 2377343 and 30 columns in the met dataset
+head(met)
+tail(met)
+
 ```
+
+There are 2377343 and 30 columns in the met dataset
+
+## 3. Look at the variables
+
+```{r}
+str(met)
+
+```
+
+## 4. Take a closer look
+
+```{r}
+table(met$year)
+table(met$day)
+table(met$hour)
+
+summary(met$temp)
+summary(met$elev)
+summary(met$wind.sp)
+
+met[met$elev==9999.0] <- NA
+summary(met$elev)
+
+met <- met[temp>-40]
+met2 <- met[order(temp)]
+head(met2)
+
+```
+
+## 5. Check data against source
+
+```{r}
+met[met$temp==-17.2,]
+# yoder colorado, prob doesnt get that cold so we should remove
+
+met <- met[temp>-15]
+met2 <- met[order(temp)]
+head(met2)
+summary(met$temp)
+# We removed any entries with a temp > -15, our lowest temp is now -3C which is reasonable
+
+```
+
+## 6. Calculate summary stats
+
+```{r}
+eleview <- met[elev==max(elev), ]
+summary(eleview)
+
+cor(eleview$temp, eleview$wind.sp, use="complete")
+cor(eleview$temp, eleview$hour, use="complete")
+cor(eleview$wind.sp, eleview$day, use="complete")
+cor(eleview$wind.sp, eleview$hour, use="complete")
+cor(eleview$temp, eleview$day, use="complete")
+
+```
+
+## 7. Graphs
+
+```{r}
+library(dplyr) 
+library(magrittr)
+library(leaflet)
+hist(met$elev, breaks=100)
+hist(met$temp)
+hist(met$wind.sp, breaks=100)
+
+leaflet(eleview) %>%
+  addProviderTiles('OpenStreetMap') %>% 
+  addCircles(lat=~lat,lng=~lon, opacity=1, fillOpacity=1, radius=100)
+
+library(lubridate)
+eleview$date <- with(eleview, ymd_h(paste(year, month, day, hour, sep= ' ')))
+summary(eleview$date)
+
+eleview <- eleview[order(date)]
+head(eleview)
+
+plot(eleview$date, eleview$temp, type='l')
+
+plot(eleview$date, eleview$wind.sp, type='l')
+
+```
+
+## 8. Ask questions
 
 The `echo: false` option disables the printing of code (only output is displayed).
