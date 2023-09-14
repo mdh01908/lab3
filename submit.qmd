@@ -90,9 +90,16 @@ cor(eleview$temp, eleview$day, use="complete")
 ## 7. Graphs
 
 ```{r}
+
 library(dplyr) 
 library(magrittr)
 library(leaflet)
+library(devtools)
+library(R.utils)
+```
+
+```{r}
+
 hist(met$elev, breaks=100)
 hist(met$temp)
 hist(met$wind.sp, breaks=100)
