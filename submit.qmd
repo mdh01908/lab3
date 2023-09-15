@@ -11,12 +11,12 @@ format:
 ```{r}
 download.file(
   "https://raw.githubusercontent.com/USCbiostats/data-science-data/master/02_met/met_all.gz",
-  destfile = file.path("~", "Downloads", "met_all.gz"),
+  destfile = "met_all.gz",
   method   = "libcurl",
   timeout  = 60
 )
 
-met <- data.table::fread(file.path("~", "Downloads", "met_all.gz"))
+met <- data.table::fread("met_all.gz")
 
 ```
 
@@ -122,5 +122,41 @@ plot(eleview$date, eleview$wind.sp, type='l')
 ```
 
 ## 8. Ask questions
+
+What is the distribution of wind direction?
+
+```{r}
+library(tidyverse)
+library(data.table)
+ggplot(met, aes(x = wind.dir)) +
+  geom_bar(aes(y = ..count..), fill = "blue", bins = 36) +
+  coord_polar(start = 0) +
+  labs(title = "Wind Direction Distribution")
+
+```
+
+what is the distribution of wind speeds?
+
+```{r}
+ggplot(met, aes(x = wind.sp)) +
+  geom_histogram(binwidth = 1, fill = "green") +
+  labs(title = "Wind Speed Distribution")
+
+```
+
+```{r}
+barplot(met$wind.sp)
+
+```
+
+is wind speed association with temperature?
+
+```{r}
+model <- lm(met$wind.sp~ met$temp, data = met)
+model
+
+summary(model)
+plot(model)
+```
 
 The `echo: false` option disables the printing of code (only output is displayed).
